@@ -52,7 +52,7 @@ Install Python and the `evdev` library for your Linux distribution:
 | **Arch Linux / Manjaro** | `sudo pacman -S python-evdev` |
 | **Ubuntu / Debian** | `sudo apt install python3-evdev` |
 | **openSUSE** | `sudo zypper install python3-evdev` |
-| **Universal (pip)** | `pip install -r requirements.txt` |
+| **Universal (pip)** | `pip install evdev` |
 
 ---
 
