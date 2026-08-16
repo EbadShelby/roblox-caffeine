@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 Roblox Caffeine - Minimalist Keep-Alive Utility for Linux / Sober
-Periodically nudges virtual gamepad thumbsticks via /dev/uinput to prevent idle timeouts.
+Periodically nudges virtual gamepad thumbsticks via /dev/uinput every 10 minutes
+to prevent Roblox's 20-minute inactivity kick.
 """
 
-import argparse
 import random
 import sys
 import time
@@ -29,7 +29,7 @@ WIDTH = 40
 
 SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
 STICK_DEFLECTION = 22000
-DEFAULT_INTERVAL_SECONDS = 10 * 60  # 10 minutes
+INTERVAL_SECONDS = 10 * 60  # Fixed 10 minutes
 
 BANNER_ART = r"""
  ___  ___  ___ _    _____  __   ___   _   ___ ___ ___ ___ _  _ ___ 
@@ -71,7 +71,7 @@ def render_box(title_icon: str, title_text: str, key_val_pairs: list):
         print(f"    {icon} : {val}")
     print(f"{GRAY}└{'─' * WIDTH}┘{RESET}")
 
-def simulate_keep_alive(ui: UInput, count: int, interval_sec: int):
+def simulate_keep_alive(ui: UInput, count: int):
     """Nudges left & right thumbsticks and returns them to center."""
     now = datetime.now()
     x = random.choice([-STICK_DEFLECTION, STICK_DEFLECTION])
@@ -95,27 +95,27 @@ def simulate_keep_alive(ui: UInput, count: int, interval_sec: int):
                 "↘ DOWN-RIGHT" if x > 0 else "↙ DOWN-LEFT")
 
     time_now = now.strftime('%I:%M %p')
-    next_time = (now + timedelta(seconds=interval_sec)).strftime('%I:%M %p')
+    next_time = (now + timedelta(seconds=INTERVAL_SECONDS)).strftime('%I:%M %p')
 
     sys.stdout.write(CLEAR)
     render_box(
         f"{YELLOW}☕{RESET}", f"Caffeine Active #{count:03d} [{time_now}]",
         [
             (f"{BLUE}{RESET} ", f"Motion: {dir_name}"),
-            (f"{CYAN}󰅐{RESET} ", f"Next: {next_time} (in {format_time(interval_sec)})"),
+            (f"{CYAN}󰅐{RESET} ", f"Next: {next_time} (in 10m)"),
         ]
     )
 
-def wait_with_progress(interval_sec: int, session_start: float):
-    """Renders a live single-line animated progress bar during wait interval."""
+def wait_with_progress(session_start: float):
+    """Renders a live single-line animated progress bar during the 10m wait interval."""
     if not sys.stdout.isatty():
-        time.sleep(interval_sec)
+        time.sleep(INTERVAL_SECONDS)
         return
 
-    for tick in range(interval_sec):
-        rem = interval_sec - tick
+    for tick in range(INTERVAL_SECONDS):
+        rem = INTERVAL_SECONDS - tick
         bar_len = 10
-        filled = int((tick / interval_sec) * bar_len)
+        filled = int((tick / INTERVAL_SECONDS) * bar_len)
         bar = '█' * filled + '░' * (bar_len - filled)
 
         spin = SPINNER[tick % len(SPINNER)]
@@ -133,22 +133,13 @@ def wait_with_progress(interval_sec: int, session_start: float):
     sys.stdout.flush()
 
 def main():
-    parser = argparse.ArgumentParser(description="Roblox Caffeine - Minimalist Keep-Alive Utility")
-    parser.add_argument(
-        "-i", "--interval",
-        type=int,
-        default=DEFAULT_INTERVAL_SECONDS,
-        help=f"Pulse interval in seconds (default: {DEFAULT_INTERVAL_SECONDS}s / 10m)"
-    )
-    args = parser.parse_args()
-
     # Startup Banner & Header
     print_banner()
     render_box(
         f"{YELLOW}☕{RESET}", f"{BOLD}Roblox Caffeine{RESET}",
         [
             (f"{BLUE}{RESET} ", "Virtual Xbox 360 Gamepad"),
-            (f"{CYAN}󰅐{RESET} ", f"Interval: Every {format_time(args.interval)}"),
+            (f"{CYAN}󰅐{RESET} ", "Interval: Every 10m"),
         ]
     )
     print()
@@ -177,11 +168,11 @@ def main():
     pulse_count = 1
 
     try:
-        simulate_keep_alive(ui, pulse_count, args.interval)
+        simulate_keep_alive(ui, pulse_count)
         while True:
-            wait_with_progress(args.interval, session_start)
+            wait_with_progress(session_start)
             pulse_count += 1
-            simulate_keep_alive(ui, pulse_count, args.interval)
+            simulate_keep_alive(ui, pulse_count)
     except KeyboardInterrupt:
         uptime_str = format_time(int(time.time() - session_start))
         sys.stdout.write(CLEAR)

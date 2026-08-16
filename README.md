@@ -7,7 +7,7 @@
 |_|_\\___/|___/____\___/_/\_\  \___/_/ \_\_| |_| |___|___|_|\_|___|
 ```
 
-### ☕ Keep your Roblox window awake on Linux
+### Keep your Roblox window awake on Linux
 
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Linux](https://img.shields.io/badge/Platform-Linux%20(Wayland%20%26%20X11)-orange.svg?style=flat-square&logo=linux&logoColor=white)](https://kernel.org/)
@@ -20,20 +20,19 @@
 
 ---
 
-## 🌟 Why Roblox Caffeine?
+## Why Roblox Caffeine?
 
-Traditional anti-AFK methods on Linux (like `xdotool` auto-clickers or Lua injectors) either **break on Wayland**, **hijack your keyboard/mouse**, or **risk getting your account banned by anticheat**.
+Traditional anti-AFK methods on Linux like auto-clickers or Lua injectors either **break on Wayland**, **hijack your keyboard/mouse**, or **risk getting your account banned**.
 
-**Roblox Caffeine** takes an elegant, hardware-level approach:
-- 🎮 **Native Virtual Gamepad**: Emulates a Microsoft Xbox 360 controller directly at the Linux kernel level (`/dev/uinput`).
-- 🪟 **Zero Focus Stealing**: Runs completely in the background. You can type, code, or play other games while Roblox stays awake on another workspace or minimized.
-- 🛡️ **100% Wayland & Niri Compatible**: Operates beneath the display server, meaning it works flawlessly on **Wayland** (Niri, GNOME, KDE, Hyprland, Sway) and **X11**.
-- 🔒 **Safe & Legitimate**: Zero memory injection, zero DLL hooking, and zero client tampering.
-- ⚡ **Fastfetch-Inspired CLI**: Minimalist terminal aesthetic with live countdown tickers and clean status cards.
+**Roblox Caffeine** takes a hardware-level approach:
+- **Native Virtual Gamepad**: Emulates a Microsoft Xbox 360 controller directly at the Linux kernel level (`/dev/uinput`).
+- **Zero Focus Stealing**: Runs completely in the background. You can type, code, or play other games while Roblox stays awake on another workspace or minimized.
+- **Wayland Compatible**: Operates beneath the display server, meaning it works flawlessly on **Wayland** (Niri, GNOME, KDE, Hyprland, Sway) and **X11**.
+- **Safe & Legitimate**: Zero memory injection, zero DLL hooking, and zero client tampering.
 
 ---
 
-## 📸 Output Preview
+## Output Preview
 
 ```text
 ┌────────────────────────────────────────┐
@@ -52,7 +51,7 @@ Traditional anti-AFK methods on Linux (like `xdotool` auto-clickers or Lua injec
 
 ---
 
-## 🚀 Installation & Setup
+## Installation & Setup
 
 ### 1. Install System Dependencies
 
@@ -111,12 +110,12 @@ If you are running **Sober** via Flatpak:
 
 ---
 
-## 🎮 Usage
+## Usage
 
 ### Quick Start
 Clone the repository and run:
 ```bash
-git clone https://github.com/EbadShelby/roblox-caffeine.git
+git clone https://github.com/YasserEbad/roblox-caffeine.git
 cd roblox-caffeine
 chmod +x roblox_caffeine.py
 ./roblox_caffeine.py
@@ -132,57 +131,22 @@ Now you can launch it from any terminal simply by running:
 roblox-caffeine
 ```
 
-### Options
-```text
-options:
-  -h, --help            Show this help message and exit
-  -i, --interval SECONDS
-                        Pulse interval in seconds (default: 600s / 10m)
-```
-
-Example for a 5-minute interval:
-```bash
-roblox-caffeine --interval 300
-```
+*Roblox Caffeine automatically pulses every 10 minutes (the optimal interval for Roblox's 20-minute idle limit).*
 
 ---
 
-## ⚙️ Running as a Systemd Background Service (Optional)
+## Comparison with Other Solutions
 
-If you want Roblox Caffeine to run silently in the background:
-
-1. Copy the systemd service file:
-   ```bash
-   mkdir -p ~/.config/systemd/user
-   cp roblox-caffeine.service ~/.config/systemd/user/
-   ```
-
-2. Enable and start the service:
-   ```bash
-   systemctl --user daemon-reload
-   systemctl --user enable --now roblox-caffeine.service
-   ```
-
-3. View live logs:
-   ```bash
-   journalctl --user -u roblox-caffeine -f
-   ```
+| Feature | Roblox Caffeine | Auto-Clicker | Lua Injectors |
+| :--- | :---: | :---: | :---: |
+| **Works in Background** | Yes | No | Yes |
+| **Wayland Ready** | Yes | sometimes broken | No |
+| **No Focus Stealing** | Yes | Steals input | Yes |
+| **Anticheat Safe** | 100% Safe | Safe | High Ban Risk |
 
 ---
 
-## 📊 Comparison with Other Solutions
-
-| Feature | ☕ Roblox Caffeine | 🖱️ Auto-Clicker (`xdotool`) | 💉 Lua Injectors | 🔌 USB Jiggler |
-| :--- | :---: | :---: | :---: | :---: |
-| **Works in Background** |  **Yes** | ❌ No |  Yes | ❌ No |
-| **Wayland & Niri Ready** |  **Yes** | ❌ Broken | ❌ No |  Yes |
-| **No Focus Stealing** |  **Yes** | ❌ Steals input |  Yes | ❌ Hijacks mouse |
-| **Anticheat Safe** |  **100% Safe** |  Safe | 🛑 **High Ban Risk** |  Safe |
-| **No Extra Hardware** |  **Yes** |  Yes |  Yes | ❌ Requires Dongle |
-
----
-
-## ❓ FAQ & Troubleshooting
+## FAQ & Troubleshooting
 
 <details>
 <summary><b>Permission denied on /dev/uinput?</b></summary>
@@ -204,6 +168,6 @@ Roblox Caffeine simulates a 0.3-second stick deflection and immediately returns 
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
