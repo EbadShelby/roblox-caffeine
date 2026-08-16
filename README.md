@@ -144,9 +144,11 @@ Make sure your user belongs to the `input` group (`groups $USER`) and you have a
 </details>
 
 <details>
-<summary><b>Does this work with native Linux games other than Roblox?</b></summary>
+<summary><b>Does this work with other games and runners?</b></summary>
 
-Yes! Any Linux application or SDL2 game that accepts gamepad input will detect the virtual Xbox 360 controller.
+Yes. While built with Roblox (Sober) in mind, it emulates a genuine hardware-level Xbox 360 controller (`/dev/uinput`). This means:
+- **Other Roblox Runners**: Works out of the box with **Vinegar** (Wine/Proton) and **Waydroid** (Android container).
+- **Other Games**: Works with any native Linux, Steam, Proton, or Wine game that accepts gamepad input and has idle kick timers (such as *GTA Online*, *FFXIV*, *Palworld*, MMOs, and survival games).
 </details>
 
 <details>
