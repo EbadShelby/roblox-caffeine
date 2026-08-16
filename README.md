@@ -9,6 +9,7 @@
 
 ### Keep your Roblox window awake on Linux
 
+[![GitHub Release](https://img.shields.io/github/v/release/EbadShelby/roblox-caffeine?style=flat-square&color=blue)](https://github.com/EbadShelby/roblox-caffeine/releases)
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Linux](https://img.shields.io/badge/Platform-Linux%20(Wayland%20%26%20X11)-orange.svg?style=flat-square&logo=linux&logoColor=white)](https://kernel.org/)
 [![Sober](https://img.shields.io/badge/Target-Sober%20%2F%20SDL2-informational.svg?style=flat-square)](https://sober.vinegarhq.org/)
@@ -42,23 +43,33 @@ Traditional anti-AFK methods on Linux like auto-clickers or Lua injectors either
 
 ## Installation & Setup
 
-### 1. Install System Dependencies
+### 1. Install Roblox Caffeine
 
-Install Python and the `evdev` library for your Linux distribution:
+**Option A: via pipx (Recommended - handles dependencies automatically)**:
+```bash
+pipx install git+https://github.com/EbadShelby/roblox-caffeine.git
+```
 
-| Distribution | Command |
-| :--- | :--- |
-| **Fedora / RHEL** | `sudo dnf install python3-evdev` |
-| **Arch Linux / Manjaro** | `sudo pacman -S python-evdev` |
-| **Ubuntu / Debian** | `sudo apt install python3-evdev` |
-| **openSUSE** | `sudo zypper install python3-evdev` |
-| **Universal (pip)** | `pip install evdev` |
+**Option B: Manual / Clone**:
+1. Install Python `evdev` for your distribution:
+   - **Fedora / RHEL**: `sudo dnf install python3-evdev`
+   - **Arch Linux / Manjaro**: `sudo pacman -S python-evdev`
+   - **Ubuntu / Debian**: `sudo apt install python3-evdev`
+   - **openSUSE**: `sudo zypper install python3-evdev`
+   - **Universal**: `pip install evdev`
+
+2. Clone & install executable:
+   ```bash
+   git clone https://github.com/EbadShelby/roblox-caffeine.git
+   cd roblox-caffeine
+   ./install.sh
+   ```
 
 ---
 
 ### 2. Configure `/dev/uinput` Permissions (Run without `sudo`)
 
-You can configure permissions automatically with one command:
+Run the automated setup command:
 ```bash
 roblox-caffeine --setup
 ```
@@ -109,21 +120,7 @@ If you are running **Sober** via Flatpak:
 
 ## Usage
 
-### Quick Start
-Clone the repository and run:
-```bash
-git clone https://github.com/EbadShelby/roblox-caffeine.git
-cd roblox-caffeine
-chmod +x roblox_caffeine.py
-./roblox_caffeine.py
-```
-
-### Install as a System Command (Optional)
-Run the included installer to link the binary to `~/.local/bin/roblox-caffeine`:
-```bash
-./install.sh
-```
-Now you can launch it from any terminal simply by running:
+Simply run from any terminal:
 ```bash
 roblox-caffeine
 ```
@@ -148,7 +145,7 @@ roblox-caffeine
 <details>
 <summary><b>Permission denied on /dev/uinput?</b></summary>
 
-Make sure your user belongs to the `input` group (`groups $USER`) and you have applied the udev rule from Step 2. Alternatively, you can run the script temporarily with `sudo python3 roblox_caffeine.py`.
+Make sure your user belongs to the `input` group (`groups $USER`) and you have applied the udev rule from Step 2. Alternatively, you can run the script temporarily with `sudo roblox-caffeine`.
 </details>
 
 <details>
