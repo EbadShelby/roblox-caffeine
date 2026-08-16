@@ -104,7 +104,7 @@ If you are running **Sober** via Flatpak:
 ### Quick Start
 Clone the repository and run:
 ```bash
-git clone https://github.com/YasserEbad/roblox-caffeine.git
+git clone https://github.com/EbadShelby/roblox-caffeine.git
 cd roblox-caffeine
 chmod +x roblox_caffeine.py
 ./roblox_caffeine.py
