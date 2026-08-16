@@ -1,0 +1,2 @@
+# Udev rule to allow members of the 'input' group to access /dev/uinput without sudo
+KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"

@@ -1,0 +1,21 @@
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs & temporary files
+*.log
+.DS_Store
