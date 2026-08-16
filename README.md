@@ -109,7 +109,7 @@ If you are running **Sober** via Flatpak:
    ```
 
 2. **Verify gamepad support in Sober configuration**:
-   Ensure `"allow_gamepad_permission": true` is set in `~/.var/app/org.vinegarhq.Sober/config/sober/settings.json`:
+   Ensure `"allow_gamepad_permission": true` is set in `~/.var/app/org.vinegarhq.Sober/config/sober/config.json` (or via Sober App Settings):
    ```json
    {
      "allow_gamepad_permission": true
