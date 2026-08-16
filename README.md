@@ -114,9 +114,9 @@ roblox-caffeine --setup
 
 ---
 
-### 3. Configure Sober (Flatpak)
+### 3. Configure Sober
 
-If you are running **Sober** via Flatpak:
+Because **Sober** runs in an isolated Flatpak sandbox by default, it requires permission to access host input devices:
 
 1. **Allow Sober to access hardware/input devices**:
    ```bash
