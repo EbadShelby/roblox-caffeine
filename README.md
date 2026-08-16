@@ -58,25 +58,33 @@ Install Python and the `evdev` library for your Linux distribution:
 
 ### 2. Configure `/dev/uinput` Permissions (Run without `sudo`)
 
-To allow your non-root user to create virtual gamepad devices:
+You can configure permissions automatically with one command:
+```bash
+roblox-caffeine --setup
+```
+*(Prompts for `sudo` to set up udev rules, group permissions, and kernel module automatically).*
 
-1. **Add your user to the `input` group**:
+<details>
+<summary><b>Or configure manually</b></summary>
+
+1. Add your user to the `input` group:
    ```bash
    sudo usermod -aG input $USER
    ```
 
-2. **Install the udev rule** (`/etc/udev/rules.d/99-uinput.rules`):
+2. Install the udev rule (`/etc/udev/rules.d/99-uinput.rules`):
    ```bash
    echo 'KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"' | sudo tee /etc/udev/rules.d/99-uinput.rules
    ```
 
-3. **Reload udev rules & load the module**:
+3. Reload udev rules & load the module:
    ```bash
    sudo udevadm control --reload-rules && sudo udevadm trigger
    sudo modprobe uinput
    ```
 
-4. **Reboot or log out** for group permissions to apply.
+4. Reboot or log out for group permissions to apply.
+</details>
 
 ---
 

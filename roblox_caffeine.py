@@ -5,7 +5,9 @@ Periodically nudges virtual gamepad thumbsticks via /dev/uinput every 10 minutes
 to prevent Roblox's 20-minute inactivity kick.
 """
 
+import os
 import random
+import subprocess
 import sys
 import time
 from datetime import datetime, timedelta
@@ -21,6 +23,7 @@ CYAN = '\033[96m'
 BLUE = '\033[94m'
 YELLOW = '\033[93m'
 GREEN = '\033[92m'
+RED = '\033[91m'
 BOLD = '\033[1m'
 DIM = '\033[2m'
 RESET = '\033[0m'
@@ -70,6 +73,53 @@ def render_box(title_icon: str, title_text: str, key_val_pairs: list):
     for icon, val in key_val_pairs:
         print(f"    {icon} : {val}")
     print(f"{GRAY}└{'─' * WIDTH}┘{RESET}")
+
+def run_setup():
+    """Automates /dev/uinput configuration with sudo."""
+    print_banner()
+    render_box(
+        f"{YELLOW}☕{RESET}", f"{BOLD}Roblox Caffeine Setup{RESET}",
+        [
+            (f"{CYAN}󰅐{RESET} ", "Configuring /dev/uinput permissions..."),
+        ]
+    )
+    print()
+
+    user = os.environ.get("USER") or os.environ.get("LOGNAME")
+    if not user:
+        try:
+            import pwd
+            user = pwd.getpwuid(os.getuid()).pw_name
+        except Exception:
+            user = "root"
+
+    udev_content = 'KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"'
+
+    commands = [
+        ("Adding user to 'input' group", ["sudo", "usermod", "-aG", "input", user]),
+        ("Writing udev rule (/etc/udev/rules.d/99-uinput.rules)", ["sudo", "sh", "-c", f'echo \'{udev_content}\' > /etc/udev/rules.d/99-uinput.rules']),
+        ("Reloading udev rules", ["sudo", "udevadm", "control", "--reload-rules"]),
+        ("Triggering udev", ["sudo", "udevadm", "trigger"]),
+        ("Loading uinput kernel module", ["sudo", "modprobe", "uinput"]),
+    ]
+
+    for desc, cmd in commands:
+        print(f"  {CYAN}•{RESET} {desc}...")
+        res = subprocess.run(cmd)
+        if res.returncode != 0:
+            print(f"\n{RED}✕ Setup failed during: {desc}{RESET}")
+            return False
+
+    print()
+    render_box(
+        f"{GREEN}✔{RESET}", f"{BOLD}Permissions Configured{RESET}",
+        [
+            (f"{YELLOW}󰋖{RESET} ", "Log out and log back in to apply"),
+            (f"{BLUE}☕{RESET} ", "Then run: roblox-caffeine"),
+        ]
+    )
+    print()
+    return True
 
 def simulate_keep_alive(ui: UInput, count: int):
     """Nudges left & right thumbsticks and returns them to center."""
@@ -133,6 +183,18 @@ def wait_with_progress(session_start: float):
     sys.stdout.flush()
 
 def main():
+    if "-h" in sys.argv or "--help" in sys.argv:
+        print_banner()
+        print("Usage: roblox-caffeine [OPTIONS]\n")
+        print("Options:")
+        print("  -s, --setup    Configure /dev/uinput permissions with sudo")
+        print("  -h, --help     Show this help message and exit\n")
+        return
+
+    if "--setup" in sys.argv or "-s" in sys.argv:
+        run_setup()
+        return
+
     # Startup Banner & Header
     print_banner()
     render_box(
@@ -156,7 +218,8 @@ def main():
         render_box(
             f"\033[91m✕\033[0m", f"{BOLD}Permission Denied (/dev/uinput){RESET}",
             [
-                (f"{YELLOW}󰋖{RESET} ", "Run with sudo or add user to 'input' group"),
+                (f"{YELLOW}󰋖{RESET} ", "Run with '--setup' to configure"),
+                (f"{CYAN}💡{RESET} ", "Or run: sudo roblox-caffeine"),
             ]
         )
         return

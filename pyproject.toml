@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "roblox-caffeine"
+version = "1.0.0"
+description = "Minimalist keep-alive utility that prevents Roblox 20-minute inactivity kick via kernel gamepad emulation on Linux."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Yasser Ebad", email = "ebadyasser123xd@gmail.com" }]
+requires-python = ">=3.8"
+dependencies = [
+    "evdev>=1.6.0",
+]
+keywords = ["roblox", "caffeine", "keep-alive", "sober", "gamepad", "uinput", "linux", "afk"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Utilities",
+    "Topic :: Games/Entertainment",
+]
+
+[project.urls]
+Homepage = "https://github.com/EbadShelby/roblox-caffeine"
+Repository = "https://github.com/EbadShelby/roblox-caffeine"
+Issues = "https://github.com/EbadShelby/roblox-caffeine/issues"
+
+[project.scripts]
+roblox-caffeine = "roblox_caffeine:main"
+
+[tool.setuptools]
+py-modules = ["roblox_caffeine"]
