@@ -26,9 +26,9 @@
 Traditional anti-AFK methods on Linux like auto-clickers or Lua injectors either **break on Wayland**, **hijack your keyboard/mouse**, or **risk getting your account banned**.
 
 **Roblox Caffeine** takes a hardware-level approach:
-- **Native Virtual Gamepad**: Emulates a Microsoft Xbox 360 controller directly at the Linux kernel level (`/dev/uinput`).
+- **Native Virtual Gamepad**: Emulates a full Microsoft Xbox 360 controller directly at the Linux kernel level (`/dev/uinput`).
 - **Zero Focus Stealing**: Runs completely in the background. You can type, code, or play other games while Roblox stays awake on another workspace or minimized.
-- **Wayland Compatible**: Operates beneath the display server, meaning it works flawlessly on **Wayland** (Niri, GNOME, KDE, Hyprland, Sway) and **X11**.
+- **Wayland Compatible**: Operates beneath the display server, meaning it works cleanly on **Wayland** (Niri, GNOME, KDE, Hyprland, Sway) and **X11**.
 - **Safe & Legitimate**: Zero memory injection, zero DLL hooking, and zero client tampering.
 
 ---
@@ -43,15 +43,15 @@ Traditional anti-AFK methods on Linux like auto-clickers or Lua injectors either
 ┌────────────────────────────────────────┐
     ☕ : Roblox Caffeine
       : Virtual Xbox 360 Gamepad
-    󰅐  : Interval: Every 10m
+    󰅐  : Interval: Every 5m
 └────────────────────────────────────────┘
 
 ┌────────────────────────────────────────┐
     ☕ : Caffeine Active #001 [05:42 PM]
-      : Motion: ↗ UP-RIGHT
-    󰅐  : Next: 05:52 PM (in 10m)
+      : Action: ↗ UP-RIGHT + Jump
+    󰅐  : Next: 05:47 PM (in 5m)
 └────────────────────────────────────────┘
- ⠋ Next in ~9m [████░░░░░░] • Uptime: 0m
+ ⠋ Next in ~4m [██░░░░░░░░] • Uptime: 0m
 ```
 
 ---
@@ -114,11 +114,11 @@ roblox-caffeine --setup
 
 ---
 
-### 3. Configure Sober
+### 3. Configure Sober & Gamescope
 
-Because **Sober** runs in an isolated Flatpak sandbox by default, it requires permission to access host input devices:
+Because **Sober** runs inside a Flatpak sandbox and recent updates (`Sober 1.8.0+`) ignore gamepad input whenever the Sober window loses focus, you need two things for true **zero-focus-stealing** background AFK:
 
-1. **Allow Sober to access hardware/input devices**:
+1. **Allow Sober to access input devices**:
    ```bash
    flatpak override --user --device=all org.vinegarhq.Sober
    ```
@@ -131,16 +131,42 @@ Because **Sober** runs in an isolated Flatpak sandbox by default, it requires pe
    }
    ```
 
+3. **Install `gamescope`** (runs Sober in its own lightweight micro-compositor so Sober always stays focused even on another workspace, while capping unfocused FPS to 15 to save GPU/battery):
+   - **Fedora / RHEL**: `sudo dnf install gamescope`
+   - **Arch Linux / Manjaro**: `sudo pacman -S gamescope`
+   - **Ubuntu / Debian**: `sudo apt install gamescope`
+   - **openSUSE**: `sudo zypper install gamescope`
+
 ---
 
 ## Usage
 
-Simply run from any terminal:
+**All-in-one (Recommended)** — launches Sober inside `gamescope` and starts Roblox Caffeine in one command:
 ```bash
+roblox-caffeine --launch
+```
+
+**Or launch them separately:**
+```bash
+# Terminal 1: Launch Sober inside gamescope (keeps focus in background + working mouse/camera)
+gamescope --backend sdl -W 1280 -H 720 -w 1280 -h 720 -o 15 --force-grab-cursor --force-windows-fullscreen -- flatpak run --nosocket=wayland --socket=x11 org.vinegarhq.Sober
+
+# Terminal 2: Start Roblox Caffeine
 roblox-caffeine
 ```
 
-*Roblox Caffeine automatically pulses every 10 minutes (the optimal interval for Roblox's 20-minute idle limit).*
+> **Tip:** Because `--force-grab-cursor` enables Roblox camera rotation inside `gamescope`, use your window manager's normal shortcut (e.g. `Super` + workspace/window keybind in Niri/Hyprland/Sway) to move away from the `gamescope` window. Roblox stays awake on its own workspace with zero focus stealing.
+
+*Roblox Caffeine pulses every 5 minutes by default, sending a discrete button press (`A` / Jump) + balanced thumbstick nudge to keep your session awake without stealing mouse or window focus.*
+
+### Options
+- `-l, --launch`: Launch Sober inside `gamescope` alongside Roblox Caffeine.
+- `--res WxH`: Custom `gamescope` window resolution for `--launch` (default: `1280x720`).
+- `-i, --interval MIN`: Custom pulse interval in minutes (1–15, default: `5`).
+- `--no-jump`: Use a subtle `L3` click + camera nudge instead of jumping/walking (useful when sitting or perched on a ledge).
+- `--test`: Fire a single test pulse immediately and exit.
+- `-s, --setup`: Configure `/dev/uinput` permissions with `sudo`.
+- `-h, --help`: Show usage help.
 
 ---
 
@@ -156,6 +182,12 @@ roblox-caffeine
 ---
 
 ## FAQ & Troubleshooting
+
+<details>
+<summary><b>Character only moves when Roblox/Sober is focused?</b></summary>
+
+Recent Sober updates (`1.8.0+`) ignore gamepad events whenever the Sober window loses focus (even with `SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1`). Run Sober inside `gamescope` via `roblox-caffeine --launch` (or the manual `gamescope` command in Step 3) so Sober permanently retains focus inside its own micro-compositor while you work on other workspaces.
+</details>
 
 <details>
 <summary><b>Permission denied on /dev/uinput?</b></summary>
@@ -174,7 +206,7 @@ Yes. While built with Roblox (Sober) in mind, it emulates a genuine hardware-lev
 <details>
 <summary><b>How does it avoid drifting in game?</b></summary>
 
-Roblox Caffeine simulates a 0.3-second stick deflection and immediately returns all axes (`ABS_X`, `ABS_Y`, `ABS_RX`, `ABS_RY`) back to absolute zero `(0, 0)`, ensuring your avatar does not keep walking.
+Roblox Caffeine sends a brief, balanced thumbstick step and immediately counter-steps back before returning all axes (`ABS_X`, `ABS_Y`, `ABS_RX`, `ABS_RY`) to absolute zero `(0, 0)` along with a discrete button press (`A` / Jump) to reset Roblox's idle timer. If you need to stay completely stationary (e.g., sitting in a chair), run `roblox-caffeine --no-jump`.
 </details>
 
 ---
