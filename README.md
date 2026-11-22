@@ -36,23 +36,10 @@ Traditional anti-AFK methods on Linux like auto-clickers or Lua injectors either
 ## Preview
 
 <p align="center">
-  <img src="assets/roblox_caffeine.png" alt="Roblox Caffeine Preview">
+  <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ebe40a32-4747-4217-8bb2-6bb1fec28bfa" />
+  <img width=600" alt="image" src="https://github.com/user-attachments/assets/58613a7d-ab30-4f72-b599-b1ddbaa83664" />
+
 </p>
-
-```text
-┌────────────────────────────────────────┐
-    ☕ : Roblox Caffeine
-      : Virtual Xbox 360 Gamepad
-    󰅐  : Interval: Every 5m
-└────────────────────────────────────────┘
-
-┌────────────────────────────────────────┐
-    ☕ : Caffeine Active #001 [05:42 PM]
-      : Action: ↗ UP-RIGHT + Jump
-    󰅐  : Next: 05:47 PM (in 5m)
-└────────────────────────────────────────┘
- ⠋ Next in ~4m [██░░░░░░░░] • Uptime: 0m
-```
 
 ---
 
