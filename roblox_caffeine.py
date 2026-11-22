@@ -14,8 +14,16 @@ import sys
 import time
 from datetime import datetime, timedelta
 
-import evdev
-from evdev import UInput, ecodes as e
+try:
+    import evdev
+    from evdev import UInput, ecodes as e
+except ImportError:
+    print("\033[91m✕ Missing Python 'evdev' module.\033[0m")
+    print("  Fedora:  sudo dnf install python3-evdev")
+    print("  Arch:    sudo pacman -S python-evdev")
+    print("  Ubuntu:  sudo apt install python3-evdev")
+    print("  Pip:     pip install evdev")
+    sys.exit(1)
 
 # ==============================================================================
 # Minimal Fastfetch Aesthetic Styling
@@ -36,7 +44,7 @@ SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
 STICK_DEFLECTION = 22000
 DEFAULT_INTERVAL_MINUTES = 5  # 3-4 pulses inside Roblox's 20-minute window
 DEVICE_WARMUP_SECONDS = 1.5   # Allow udev/SDL3/Sober to open the virtual device
-DEFAULT_GAMESCOPE_RES = "1280x720"
+DEFAULT_GAMESCOPE_RES = "1920x1080"
 GAMESCOPE_UNFOCUSED_FPS = 15
 
 BANNER_ART = r"""
@@ -102,14 +110,14 @@ def run_setup():
         except Exception:
             user = "root"
 
-    udev_content = 'KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"'
+    udev_content = 'KERNEL=="uinput", GROUP="input", MODE="0660", TAG+="uaccess", OPTIONS+="static_node=uinput"'
 
     commands = [
         ("Adding user to 'input' group", ["sudo", "usermod", "-aG", "input", user]),
         ("Writing udev rule (/etc/udev/rules.d/99-uinput.rules)", ["sudo", "sh", "-c", f'echo \'{udev_content}\' > /etc/udev/rules.d/99-uinput.rules']),
-        ("Reloading udev rules", ["sudo", "udevadm", "control", "--reload-rules"]),
-        ("Triggering udev", ["sudo", "udevadm", "trigger"]),
         ("Loading uinput kernel module", ["sudo", "modprobe", "uinput"]),
+        ("Reloading udev rules", ["sudo", "udevadm", "control", "--reload-rules"]),
+        ("Applying udev rule to /dev/uinput", ["sudo", "udevadm", "trigger", "--name-match=uinput"]),
     ]
 
     for desc, cmd in commands:
@@ -123,8 +131,8 @@ def run_setup():
     render_box(
         f"{GREEN}✔{RESET}", f"{BOLD}Permissions Configured{RESET}",
         [
-            (f"{YELLOW}󰋖{RESET} ", "Log out and log back in to apply"),
-            (f"{BLUE}☕{RESET} ", "Then run: roblox-caffeine"),
+            (f"{YELLOW}󰋖{RESET} ", "Ready now (re-login if permission error)"),
+            (f"{BLUE}☕{RESET} ", "Run: roblox-caffeine --launch"),
         ]
     )
     print()
@@ -256,8 +264,13 @@ def parse_resolution(res: str):
     return w, h
 
 
-def launch_sober_gamescope(width: int, height: int) -> bool:
+def launch_sober_gamescope(width: int, height: int, sensitivity: float = None) -> bool:
     """Launches Sober inside gamescope so it keeps focus while running in the background."""
+    if os.geteuid() == 0:
+        print(f"{RED}✕ Do not run '--launch' with sudo (Flatpak/gamescope must run as your user).{RESET}")
+        print(f"  Run {CYAN}roblox-caffeine --setup{RESET} once, then run without sudo.")
+        return False
+
     if not shutil.which("gamescope"):
         render_box(
             f"{RED}✕{RESET}", f"{BOLD}gamescope Not Installed{RESET}",
@@ -274,20 +287,35 @@ def launch_sober_gamescope(width: int, height: int) -> bool:
         print(f"{RED}✕ 'flatpak' is required to launch Sober.{RESET}")
         return False
 
+    sober_check = subprocess.run(
+        ["flatpak", "info", "org.vinegarhq.Sober"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    if sober_check.returncode != 0:
+        print(f"{RED}✕ Sober Flatpak (org.vinegarhq.Sober) is not installed.{RESET}")
+        print("  Install it from https://sober.vinegarhq.org/")
+        return False
+
     cmd = [
         "gamescope",
         "--backend", "sdl",
         "-W", str(width), "-H", str(height),
         "-w", str(width), "-h", str(height),
         "-o", str(GAMESCOPE_UNFOCUSED_FPS),
+    ]
+    if sensitivity is not None:
+        cmd.extend(["-s", f"{sensitivity:g}"])
+    cmd.extend([
         "--force-grab-cursor",
         "--force-windows-fullscreen",
         "--",
         "flatpak", "run",
         "--nosocket=wayland",
         "--socket=x11",
+        "--env=SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1",
         "org.vinegarhq.Sober",
-    ]
+    ])
     try:
         subprocess.Popen(
             cmd,
@@ -322,6 +350,13 @@ def parse_args():
         help=f"Gamescope resolution for --launch (default: {DEFAULT_GAMESCOPE_RES})",
     )
     parser.add_argument(
+        "--sens",
+        type=float,
+        default=None,
+        metavar="MULT",
+        help="Gamescope mouse sensitivity multiplier (e.g. 0.6 or 1.5)",
+    )
+    parser.add_argument(
         "-i", "--interval",
         type=int,
         default=DEFAULT_INTERVAL_MINUTES,
@@ -351,6 +386,7 @@ def main():
         print("Options:")
         print("  -l, --launch         Launch Sober inside gamescope + start keep-alive")
         print(f"      --res WxH        Gamescope window resolution (default: {DEFAULT_GAMESCOPE_RES})")
+        print("      --sens MULT      Gamescope mouse sensitivity multiplier (e.g. 0.6, 1.5)")
         print(f"  -i, --interval MIN   Pulse interval in minutes (1-15, default: {DEFAULT_INTERVAL_MINUTES})")
         print("      --no-jump        Use L3 click + camera nudge instead of jumping/walking")
         print("      --test           Fire a single test pulse and exit")
@@ -366,11 +402,15 @@ def main():
         print(f"{RED}✕ Interval must be between 1 and 15 minutes (Roblox kicks at 20m).{RESET}")
         sys.exit(1)
 
+    if args.sens is not None and not (0.05 <= args.sens <= 10.0):
+        print(f"{RED}✕ Sensitivity multiplier must be between 0.05 and 10.0.{RESET}")
+        sys.exit(1)
+
     res_dims = None
     if args.launch:
         res_dims = parse_resolution(args.res)
         if not res_dims:
-            print(f"{RED}✕ Invalid resolution '{args.res}'. Use WxH format (e.g., 1280x720).{RESET}")
+            print(f"{RED}✕ Invalid resolution '{args.res}'. Use WxH format (e.g., 1920x1080).{RESET}")
             sys.exit(1)
 
     interval_seconds = args.interval * 60
@@ -407,11 +447,12 @@ def main():
 
     if args.launch:
         width, height = res_dims
-        if not launch_sober_gamescope(width, height):
+        if not launch_sober_gamescope(width, height, sensitivity=args.sens):
             ui.close()
             sys.exit(1)
+        sens_suffix = f", sens {args.sens:g}x" if args.sens is not None else ""
         header_rows.append(
-            (f"{GREEN}󰖲{RESET} ", f"Sober: gamescope ({width}x{height})")
+            (f"{GREEN}󰖲{RESET} ", f"Sober: gamescope ({width}x{height}{sens_suffix})")
         )
 
     render_box(f"{YELLOW}☕{RESET}", f"{BOLD}Roblox Caffeine{RESET}", header_rows)

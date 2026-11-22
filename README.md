@@ -12,7 +12,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/EbadShelby/roblox-caffeine?style=flat-square&color=blue)](https://github.com/EbadShelby/roblox-caffeine/releases)
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Linux](https://img.shields.io/badge/Platform-Linux%20(Wayland%20%26%20X11)-orange.svg?style=flat-square&logo=linux&logoColor=white)](https://kernel.org/)
-[![Sober](https://img.shields.io/badge/Target-Sober%20%2F%20SDL2-informational.svg?style=flat-square)](https://sober.vinegarhq.org/)
+[![Sober](https://img.shields.io/badge/Target-Sober%20%2F%20SDL3-informational.svg?style=flat-square)](https://sober.vinegarhq.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 
 *A minimalist, zero-focus-stealing keep-alive utility that prevents Roblox's 20-minute inactivity kick via kernel gamepad emulation.*
@@ -64,6 +64,7 @@ Traditional anti-AFK methods on Linux like auto-clickers or Lua injectors either
 ```bash
 pipx install git+https://github.com/EbadShelby/roblox-caffeine.git
 ```
+*(If `pipx` fails compiling `evdev` due to missing C/kernel headers on newer Python versions, use Option B with your distro's `python3-evdev` package.)*
 
 **Option B: Manual / Clone**:
 1. Install Python `evdev` for your distribution:
@@ -100,27 +101,27 @@ roblox-caffeine --setup
 
 2. Install the udev rule (`/etc/udev/rules.d/99-uinput.rules`):
    ```bash
-   echo 'KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"' | sudo tee /etc/udev/rules.d/99-uinput.rules
+   echo 'KERNEL=="uinput", GROUP="input", MODE="0660", TAG+="uaccess", OPTIONS+="static_node=uinput"' | sudo tee /etc/udev/rules.d/99-uinput.rules
    ```
 
-3. Reload udev rules & load the module:
+3. Load the module & apply udev rules:
    ```bash
-   sudo udevadm control --reload-rules && sudo udevadm trigger
    sudo modprobe uinput
+   sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=uinput
    ```
 
-4. Reboot or log out for group permissions to apply.
+4. Log out and log back in if you still get a permission error.
 </details>
 
 ---
 
 ### 3. Configure Sober & Gamescope
 
-Because **Sober** runs inside a Flatpak sandbox and recent updates (`Sober 1.8.0+`) ignore gamepad input whenever the Sober window loses focus, you need two things for true **zero-focus-stealing** background AFK:
+Because **Sober** runs inside a Flatpak sandbox and recent updates (`Sober 1.8.0+`) ignore gamepad input whenever the Sober window loses focus, complete these three steps for true **zero-focus-stealing** background AFK:
 
 1. **Allow Sober to access input devices**:
    ```bash
-   flatpak override --user --device=all org.vinegarhq.Sober
+   flatpak override --user --device=all --env=SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1 org.vinegarhq.Sober
    ```
 
 2. **Verify gamepad support in Sober configuration**:
@@ -149,7 +150,7 @@ roblox-caffeine --launch
 **Or launch them separately:**
 ```bash
 # Terminal 1: Launch Sober inside gamescope (keeps focus in background + working mouse/camera)
-gamescope --backend sdl -W 1280 -H 720 -w 1280 -h 720 -o 15 --force-grab-cursor --force-windows-fullscreen -- flatpak run --nosocket=wayland --socket=x11 org.vinegarhq.Sober
+gamescope --backend sdl -W 1920 -H 1080 -w 1920 -h 1080 -o 15 --force-grab-cursor --force-windows-fullscreen -- flatpak run --nosocket=wayland --socket=x11 --env=SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1 org.vinegarhq.Sober
 
 # Terminal 2: Start Roblox Caffeine
 roblox-caffeine
@@ -161,7 +162,8 @@ roblox-caffeine
 
 ### Options
 - `-l, --launch`: Launch Sober inside `gamescope` alongside Roblox Caffeine.
-- `--res WxH`: Custom `gamescope` window resolution for `--launch` (default: `1280x720`).
+- `--res WxH`: Custom `gamescope` window resolution for `--launch` (default: `1920x1080`).
+- `--sens MULT`: Custom `gamescope` mouse sensitivity multiplier (e.g. `--sens 0.6` slower or `--sens 1.5` faster).
 - `-i, --interval MIN`: Custom pulse interval in minutes (1–15, default: `5`).
 - `--no-jump`: Use a subtle `L3` click + camera nudge instead of jumping/walking (useful when sitting or perched on a ledge).
 - `--test`: Fire a single test pulse immediately and exit.
@@ -186,7 +188,14 @@ roblox-caffeine
 <details>
 <summary><b>Character only moves when Roblox/Sober is focused?</b></summary>
 
-Recent Sober updates (`1.8.0+`) ignore gamepad events whenever the Sober window loses focus (even with `SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1`). Run Sober inside `gamescope` via `roblox-caffeine --launch` (or the manual `gamescope` command in Step 3) so Sober permanently retains focus inside its own micro-compositor while you work on other workspaces.
+Recent Sober updates (`1.8.0+`) ignore gamepad events whenever the Sober window loses focus (even with `SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1`). Run Sober inside `gamescope` via `roblox-caffeine --launch` (or the manual `gamescope` command under **Usage**) so Sober permanently retains focus inside its own micro-compositor while you work on other workspaces.
+</details>
+
+<details>
+<summary><b>Mouse speed feels different or graphics look low inside gamescope?</b></summary>
+
+- **Cursor speed**: `--force-grab-cursor` uses raw unaccelerated mouse input, which bypasses desktop touchpad/mouse acceleration. Tune it with `--sens` (e.g. `roblox-caffeine --launch --sens 0.6` to slow down or `--sens 1.5` to speed up).
+- **Resolution & graphics**: Match `--res` to your monitor (e.g. `--res 1920x1080`, `--res 2560x1440`, or `--res 1280x800` on Steam Deck). In Roblox's in-game **Settings → Graphics Mode**, switch from **Automatic** to **Manual** so gamescope's 15 FPS background cap (`-o 15`) doesn't cause Roblox to auto-downgrade graphics quality.
 </details>
 
 <details>

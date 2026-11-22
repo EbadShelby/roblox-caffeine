@@ -1,2 +1,2 @@
-# Udev rule to allow members of the 'input' group to access /dev/uinput without sudo
-KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"
+# Udev rule to allow members of the 'input' group (and active local session users) to access /dev/uinput without sudo
+KERNEL=="uinput", GROUP="input", MODE="0660", TAG+="uaccess", OPTIONS+="static_node=uinput"

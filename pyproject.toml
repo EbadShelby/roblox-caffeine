@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "roblox-caffeine"
-version = "1.1.0"
+version = "1.1.1"
 description = "Minimalist keep-alive utility that prevents Roblox 20-minute inactivity kick via kernel gamepad emulation on Linux."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -26,6 +26,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Utilities",
     "Topic :: Games/Entertainment",
 ]
